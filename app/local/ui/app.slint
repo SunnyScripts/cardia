@@ -1,0 +1,261 @@
+//import { Slider, SpinBox, ComboBox, CheckBox, Button, ScrollView } from "std-widgets.slint";
+//
+//export component AppWindow inherits Window {
+//    width: 1150px; // Expanded to fit the sidebar
+//    height: 800px;
+//    background: #111116;
+//    title: "Cardia: An Ichor-Driven Acoustic Superfluid";
+//
+//    // --- NEW ATOM INJECTION BINDINGS ---
+//        callback protons_changed(int);
+//        callback neutrons_changed(int);
+//        in property <string> ui_target_bond_angle: "N/A";
+//        in property <string> ui_target_bond_dist: "N/A";
+//
+//    // --- RENDER BINDINGS ---
+//    in property <image> fluid_frame;
+//
+//    // --- ENGINE STATE ---
+//    in-out property <bool> is_paused: true;
+//    in-out property <bool> show_metrics: false;
+//
+//    // --- RUST CALLBACKS ---
+//    callback toggle_pause();
+//    callback alpha_changed(float);
+//    callback frequency_changed(float);
+//    callback scale_changed(float);
+//    callback atom_selected(string);
+//    callback inject_atom_clicked();
+//
+//    callback camera_dragged(float, float);
+//    callback camera_panned(float, float);
+//    callback camera_zoomed(float);
+//
+//    // --- UI DISPLAY PROPERTIES (Updated by Rust) ---
+//    in property <string> precision_text: "1.30e-27 m";
+//
+//    // Physics Metrics
+//    in property <string> metric_variance: "0.00";
+//    in property <string> metric_decay: "0.00";
+//    in property <string> metric_angle: "0.0°";
+//    in property <string> metric_mass: "0.00";
+//    in property <string> metric_kinetic: "0.00";
+//    in property <string> metric_momentum: "0.00";
+//    in property <string> metric_density: "1.00";
+//    in property <string> metric_mach: "0.00";
+//    in property <string> metric_stability: "100%";
+//    in property <string> metric_correlation: "0.00";
+//    in property <string> metric_axial: "0.00";
+//
+//    HorizontalLayout
+//    {
+//        // ==========================================
+//        // LEFT: The 3D Viewport (800x750)
+//        // ==========================================
+//        Rectangle {
+//            width: 800px;
+//            height: 750px;
+//
+//            // Centered vertically in the window
+////            alignment: center;
+//
+//            Image {
+//                width: 100%;
+//                height: 100%;
+//                source: root.fluid_frame;
+//            }
+//
+//            TouchArea {
+//                width: 100%;
+//                height: 100%;
+//                in-out property <length> last_x: 0px;
+//                in-out property <length> last_y: 0px;
+//                property <bool> is_shifting;
+//
+//                pointer-event(event) => {
+//                    if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
+//                        self.last_x = self.mouse-x;
+//                        self.last_y = self.mouse-y;
+//                        self.is_shifting = event.modifiers.shift;
+//                    }
+//                }
+//
+//                moved => {
+//                    if (self.pressed) {
+//                        let dx = (self.mouse-x - self.last_x) / 1px;
+//                        let dy = (self.mouse-y - self.last_y) / 1px;
+//
+//                        if (self.is_shifting) { root.camera_panned(dx, dy); }
+//                        else { root.camera_dragged(dx, dy); }
+//
+//                        self.last_x = self.mouse-x;
+//                        self.last_y = self.mouse-y;
+//                    }
+//                }
+//
+//                scroll-event(event) => {
+//                    root.camera_zoomed(event.delta-y / 1px);
+//                    return accept;
+//                }
+//            }
+//        }
+//
+//        // ==========================================
+//        // RIGHT: Control Sidebar (350px)
+//        // ==========================================
+//        Rectangle {
+//            width: 350px;
+//            background: #1a1a24;
+//
+//            ScrollView {
+//                VerticalLayout
+//                {
+//                    padding: 20px;
+//                    spacing: 20px;
+//
+//                    Text { text: "Topological Injection Editor"; color: #888; font-size: 12px; font-weight: 800; }
+//
+//                    HorizontalLayout {
+//                        spacing: 10px;
+//                        VerticalLayout {
+//                            Text { text: "Protons (Z)"; color: #aaa; font-size: 11px; }
+//                            SpinBox {
+//                                minimum: 1; maximum: 118; value: 1; // Default to Oxygen
+//                                enabled: root.is_paused;
+//                                edited(val) => { root.protons_changed(val); }
+//                            }
+//                        }
+//                        VerticalLayout {
+//                            Text { text: "Neutrons (N)"; color: #aaa; font-size: 11px; }
+//                            SpinBox {
+//                                minimum: 0; maximum: 177; value: 0;
+//                                enabled: root.is_paused;
+//                                edited(val) => { root.neutrons_changed(val); }
+//                            }
+//                        }
+//                    }
+//
+//                    Button {
+//                        text: "DROP ATOM AT CENTER";
+//                        enabled: root.is_paused;
+//                        clicked => { root.inject_atom_clicked(); }
+//                    }
+//
+//                    Text {
+//                        text: root.is_paused ? "Hover to preview bond. Click to lock ghost atom." : "Pause simulation to inject new atoms.";
+//                        color: root.is_paused ? #444 : #ff4444;
+//                        font-size: 11px;
+//                        wrap: word-wrap;
+//                    }
+//
+//                    // Readout of the traditional lookup logic
+//                    if (root.is_paused) : Rectangle
+//                    {
+//                        background: #222;
+//                        padding: 5px;
+//                        border-radius: 4px;
+//                        VerticalLayout
+//                        {
+//                            Text { text: "Empirical Target (Paused):"; color: #888; font-size: 10px; }
+//                            Text { text: root.ui_target_bond_angle; color: #00ffcc; font-size: 12px; font-weight: 700; }
+//                            Text { text: root.ui_target_bond_dist; color: #00ffcc; font-size: 12px; font-weight: 700; }
+//                        }
+//                    }
+//
+//                    // 1. ENGINE CONTROLS
+//                    Text { text: "Engine Execution"; color: #888; font-size: 12px; font-weight: 800; }
+//
+//                    Button {
+//                        text: root.is_paused ? "▶ RUN SIMULATION" : "⏸ PAUSE SIMULATION";
+//                        clicked => {
+//                            root.is_paused = !root.is_paused;
+//                            root.toggle_pause();
+//                        }
+//                    }
+//
+//                    // 2. IN-SILICO PLACEMENT (Only enabled when paused)
+//                    Text { text: "Topological Injection"; color: #888; font-size: 12px; font-weight: 800; }
+//
+//                    ComboBox {
+//                        model: ["Trefoil Knot (Nucleon)", "Figure-Eight (Heavy)", "Unknot (Phonon / Boson)"];
+//                        current-value: "Trefoil Knot (Nucleon)";
+//                        enabled: root.is_paused;
+//                        selected(val) => { root.atom_selected(val); }
+//                    }
+//
+//                    Text {
+//                        text: "Hover viewport to place ghost structure. Click to inject.";
+//                        color: root.is_paused ? #aaa : #444;
+//                        font-size: 11px;
+//                        wrap: word-wrap;
+//                    }
+//
+//                    Rectangle { height: 1px; background: #333; }
+//
+//                    // 3. VISUAL OVERRIDES
+//                    Text { text: "Spectrometry Filters"; color: #888; font-size: 12px; font-weight: 800; }
+//
+//                    VerticalLayout {
+//                        spacing: 5px;
+//                        Text { text: "Opacity Multiplier"; color: white; }
+//                        Slider { minimum: 0.1; maximum: 5.0; value: 1.0; changed(val) => { root.alpha_changed(val); } }
+//                    }
+//
+//                    VerticalLayout {
+//                        spacing: 5px;
+//                        Text { text: "Wave Frequency Bandpass"; color: white; }
+//                        Slider { minimum: 0.0; maximum: 1.0; value: 0.5; changed(val) => { root.frequency_changed(val); } }
+//                    }
+//
+//                    Rectangle { height: 1px; background: #333; }
+//
+//                    // 4. PHYSICS SCALE
+//                    Text { text: "Vacuum Cutoff Scale"; color: #888; font-size: 12px; font-weight: 800; }
+//
+//                    VerticalLayout {
+//                        spacing: 5px;
+//                        Text { text: "Node Precision: " + root.precision_text; color: #ffd700; font-weight: 700; }
+//                        Slider {
+//                            minimum: 0.0; maximum: 1.0; value: 0.5;
+//                            enabled: root.is_paused; // Can only scale while paused
+//                            changed(val) => { root.scale_changed(val); }
+//                        }
+//                    }
+//
+//                    Rectangle { height: 1px; background: #333; }
+//
+//                    // 5. METRICS PANEL
+//                    HorizontalLayout {
+//                        Text { text: "Live Telemetry"; color: #888; font-size: 12px; font-weight: 800; vertical-alignment: center;}
+//                        CheckBox {
+//                            text: "Enable (High CPU)";
+//                            checked: root.show_metrics;
+//                            toggled => { root.show_metrics = self.checked; }
+//                        }
+//                    }
+//
+//                    if (root.show_metrics) : VerticalLayout {
+//                        spacing: 8px;
+//
+//                        // Paper Metrics
+//                        HorizontalLayout { Text { text: "Spatial Variance:"; color: #aaa; } Text { text: root.metric_variance; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Velocity Decay:"; color: #aaa; } Text { text: root.metric_decay; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Dynamic Bond Angle:"; color: #aaa; } Text { text: root.metric_angle; color: #ffd700; horizontal-alignment: right; } }
+//
+//                        Rectangle { height: 1px; background: #222; }
+//
+//                        // Health Metrics
+//                        HorizontalLayout { Text { text: "Lattice Mass:"; color: #aaa; } Text { text: root.metric_mass; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Vacuum KE:"; color: #aaa; } Text { text: root.metric_kinetic; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Net Momentum:"; color: #aaa; } Text { text: root.metric_momentum; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Peak Density:"; color: #aaa; } Text { text: root.metric_density; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Peak Mach No.:"; color: #aaa; } Text { text: root.metric_mach; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Math Stability:"; color: #aaa; } Text { text: root.metric_stability; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Global Correlation:"; color: #aaa; } Text { text: root.metric_correlation; color: white; horizontal-alignment: right; } }
+//                        HorizontalLayout { Text { text: "Axial Bias:"; color: #aaa; } Text { text: root.metric_axial; color: white; horizontal-alignment: right; } }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

@@ -1,0 +1,20 @@
+[package]
+name = "local"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+soup = { path = "../../engine/fluid" }
+
+#slint = { version = "1.16.0", features = ["backend-winit", "unstable-wgpu-28", "renderer-femtovg-wgpu"] }
+
+wgpu = "29.0.3"
+winit = "0.30.13"
+pollster = "0.4.0"
+bytemuck = "1.25.0"
+
+#chrono = "0.4.44"
+#sysinfo = "0.39.3"
+
+#[build-dependencies]
+#slint-build = "1.16.0"r = { path = "../../core/data_compiler" }

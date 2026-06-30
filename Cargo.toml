@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+
+# Automatically find any crate inside these folders
+members = [
+#    "core/*",
+    "engine/fluid",
+    #    "mechanics/*",
+    #    "analysis/*",
+    "app/*",
+    #    "ops/*"
+]
+
+# Optimize all crates in the workspace perfectly for Apple Silicon
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+#target-cpu = "apple-m4" # Works optimally for M1/M2/M3/M4 architectures
